@@ -117,13 +117,14 @@ button:hover {
     background: #455a64;
 }
 
-input[type="number"] {
-    padding: 8px;
-    width: 60px;
+select {
+    padding: 10px;
+    width: 180px;
     font-size: 16px;
     text-align: center;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #ccc;
+    background: white;
 }
 
 input[type="text"] {
@@ -206,8 +207,16 @@ hr {
     <h2>Jigsaw Generator</h2>
 
     <div class="grid-settings">
-        <p>Rows:<br><input type="number" id="rowsInput" value="3" min="2" max="15"></p>
-        <p>Cols:<br><input type="number" id="colsInput" value="4" min="2" max="15"></p>
+        <p>
+            Difficulty:<br>
+            <select id="pieceCountSelect">
+                <option value="10">10 Pieces</option>
+                <option value="20" selected>20 Pieces</option>
+                <option value="50">50 Pieces</option>
+                <option value="100">100 Pieces</option>
+                <option value="200">200 Pieces</option>
+            </select>
+        </p>
     </div>
 
     <hr>
@@ -512,8 +521,16 @@ function initGame() {
 
     resizeCanvas();
 
-    const rows = parseInt(document.getElementById('rowsInput').value);
-    const cols = parseInt(document.getElementById('colsInput').value);
+    const pieceCount = parseInt(document.getElementById('pieceCountSelect').value);
+
+    const aspectRatio = puzzleImage.width / puzzleImage.height;
+
+    let cols = Math.round(Math.sqrt(pieceCount * aspectRatio));
+    let rows = Math.round(pieceCount / cols);
+
+    while ((rows * cols) < pieceCount) {
+        cols++;
+    }
 
     const pieceW = puzzleImage.width / cols;
     const pieceH = puzzleImage.height / rows;
@@ -648,8 +665,8 @@ function handleMove(mx, my) {
 
     if (!selectedPiece) return;
 
-    selectedPiece.x += ((mx - offset.x) - selectedPiece.x) * 0.35;
-    selectedPiece.y += ((my - offset.y) - selectedPiece.y) * 0.35;
+    selectedPiece.x = mx - offset.x;
+    selectedPiece.y = my - offset.y;
 }
 
 function handleDrop() {
@@ -689,8 +706,14 @@ canvas.addEventListener('pointerdown', (e) => {
 });
 
 canvas.addEventListener('pointermove', (e) => {
+
+    if (!selectedPiece) return;
+
+    e.preventDefault();
+
     handleMove(e.clientX, e.clientY);
-});
+
+}, { passive: false });
 
 canvas.addEventListener('pointerup', () => {
     handleDrop();
