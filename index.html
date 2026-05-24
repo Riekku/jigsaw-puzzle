@@ -1,222 +1,60 @@
-# Optimized Mobile-First Jigsaw Puzzle Game
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Pro Jigsaw Optimized</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Jigsaw: Classic Shapes & Controls</title>
+    <style>
+        body { margin: 0; background-color: #1a1a1a; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; touch-action: none; }
+        canvas { background-color: #2c3e50; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
 
-<style>
-* {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-}
+        #ui { position: absolute; top: 20px; left: 20px; color: white; pointer-events: none; text-shadow: 1px 1px 2px black; z-index: 10;}
+        #side-controls { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
 
-html,
-body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    overscroll-behavior: none;
-    background: #1a1a1a;
-    font-family: sans-serif;
-    touch-action: none;
-}
+        .overlay { position: absolute; background: rgba(0,0,0,0.85); color: white; padding: 30px 40px; border-radius: 15px; text-align: center; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 400px; }
 
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        .piece-settings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+        .piece-settings input { display: none; }
+        .piece-settings label { background: #34495e; border: 2px solid transparent; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; padding: 10px 8px; transition: background 0.2s, border-color 0.2s; }
+        .piece-settings input:checked + label { background: #27ae60; border-color: #9ff0bf; }
 
-canvas {
-    background-color: #2c3e50;
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
-    touch-action: none;
-    will-change: transform;
-    transform: translateZ(0);
-}
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #27ae60; border: none; color: white; border-radius: 5px; margin-top: 10px; width: 100%; transition: background 0.2s; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);}
+        button:hover { background: #2ecc71; }
+        .side-btn { padding: 10px 15px; font-size: 14px; background: #34495e; border-radius: 8px; }
+        .side-btn:hover { background: #455a64; }
 
-#ui {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    color: white;
-    pointer-events: none;
-    text-shadow: 1px 1px 3px black;
-    z-index: 10;
-    font-size: 18px;
-    font-weight: bold;
-}
+        input[type="text"] { padding: 10px; width: calc(100% - 20px); font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px; }
+        input[type="file"] { margin: 10px 0; background: #333; padding: 10px; border-radius: 5px; width: calc(100% - 20px); cursor: pointer; color: white; }
 
-#side-controls {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 20;
-}
-
-.overlay {
-    position: absolute;
-    background: rgba(0,0,0,0.88);
-    color: white;
-    padding: 30px 40px;
-    border-radius: 18px;
-    text-align: center;
-    z-index: 100;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    max-width: 420px;
-    width: calc(100vw - 40px);
-}
-
-.grid-settings {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.grid-settings p {
-    margin: 0;
-}
-
-button {
-    padding: 12px 24px;
-    font-size: 16px;
-    cursor: pointer;
-    background: #27ae60;
-    border: none;
-    color: white;
-    border-radius: 10px;
-    margin-top: 10px;
-    width: 100%;
-    transition: background 0.2s ease;
-    font-weight: bold;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-button:hover {
-    background: #2ecc71;
-}
-
-.side-btn {
-    padding: 12px 18px;
-    font-size: 15px;
-    background: #34495e;
-    border-radius: 12px;
-}
-
-.side-btn:hover {
-    background: #455a64;
-}
-
-select {
-    padding: 10px;
-    width: 180px;
-    font-size: 16px;
-    text-align: center;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    background: white;
-}
-
-input[type="text"] {
-    padding: 10px;
-    width: 100%;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin-bottom: 10px;
-}
-
-input[type="file"] {
-    margin: 10px 0;
-    background: #333;
-    padding: 10px;
-    border-radius: 8px;
-    width: 100%;
-    cursor: pointer;
-    color: white;
-}
-
-hr {
-    border-color: #444;
-    margin: 20px 0;
-}
-
-.hidden {
-    display: none !important;
-}
-
-#loadingMsg {
-    color: #f1c40f;
-    margin-top: 15px;
-    font-weight: bold;
-}
-
-@media (max-width: 768px) {
-
-    #side-controls {
-        top: auto;
-        bottom: 15px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        flex-direction: row;
-        gap: 12px;
-    }
-
-    .side-btn {
-        width: auto;
-        min-width: 140px;
-        font-size: 16px;
-        padding: 14px 18px;
-    }
-
-    #ui {
-        top: 10px;
-        left: 10px;
-        font-size: 16px;
-    }
-
-    .overlay {
-        padding: 20px;
-    }
-}
-</style>
+        hr { border-color: #444; margin: 20px 0; }
+        .hidden { display: none !important; }
+        #loadingMsg { color: #f1c40f; margin-top: 15px; font-weight: bold; }
+    </style>
 </head>
 <body>
 
 <div id="ui">
-    <div id="stats"></div>
+    <div id="stats" style="font-size: 20px; font-weight: bold;"></div>
 </div>
 
 <div id="side-controls" class="hidden">
-    <button class="side-btn" onclick="restartPuzzle()">🔄 Restart</button>
+    <button class="side-btn" onclick="restartPuzzle()">🔄 Restart Current</button>
     <button class="side-btn" onclick="showSettings()">⚙️ New Picture</button>
 </div>
 
 <div id="menu" class="overlay">
     <h2>Jigsaw Generator</h2>
 
-    <div class="grid-settings">
-        <p>
-            Difficulty:<br>
-            <select id="pieceCountSelect">
-                <option value="10">10 Pieces</option>
-                <option value="20" selected>20 Pieces</option>
-                <option value="50">50 Pieces</option>
-                <option value="100">100 Pieces</option>
-                <option value="200">200 Pieces</option>
-            </select>
-        </p>
+    <h3>Pieces</h3>
+    <div class="piece-settings">
+        <input type="radio" name="pieceCount" id="pieces20" value="20" checked>
+        <label for="pieces20">20</label>
+        <input type="radio" name="pieceCount" id="pieces50" value="50">
+        <label for="pieces50">50</label>
+        <input type="radio" name="pieceCount" id="pieces100" value="100">
+        <label for="pieces100">100</label>
+        <input type="radio" name="pieceCount" id="pieces200" value="200">
+        <label for="pieces200">200</label>
     </div>
 
     <hr>
@@ -227,10 +65,10 @@ hr {
     <hr>
 
     <h3>Option 2: AI Generate</h3>
-    <input type="text" id="aiPrompt" placeholder="e.g. Cyberpunk cat city">
+    <input type="text" id="aiPrompt" placeholder="e.g., A cozy cabin in the woods, painted">
     <button onclick="generateAIImage()">Generate AI Puzzle</button>
 
-    <div id="loadingMsg" class="hidden">Loading...</div>
+    <div id="loadingMsg" class="hidden">Loading image... please wait.</div>
 </div>
 
 <div id="win-message" class="overlay hidden">
@@ -243,104 +81,161 @@ hr {
 
 <script>
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: false });
 
 let pieces = [];
 let selectedPiece = null;
 let offset = { x: 0, y: 0 };
 let animationFrameId = null;
-let dpr = window.devicePixelRatio || 1;
+let boardRect = { x: 0, y: 0, w: 0, h: 0 };
+let currentRows = 4;
+let currentCols = 5;
+const trayPadding = 18;
+const trayTopPadding = 82;
+const puzzleSizes = {
+    20: { rows: 4, cols: 5 },
+    50: { rows: 5, cols: 10 },
+    100: { rows: 10, cols: 10 },
+    200: { rows: 10, cols: 20 }
+};
 
-const puzzleImage = new Image();
-puzzleImage.crossOrigin = 'Anonymous';
+let puzzleImage = new Image();
+puzzleImage.crossOrigin = "Anonymous";
 
-function resizeCanvas() {
-    dpr = window.devicePixelRatio || 1;
+// --- GAME FLOW CONTROLS ---
 
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
+document.getElementById('imageUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('loadingMsg').innerText = "Processing your image...";
+    document.getElementById('loadingMsg').classList.remove('hidden');
+    loadImage(URL.createObjectURL(file));
+});
 
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-resizeCanvas();
-
-function getPlayableBounds() {
-    const padding = 20;
-
-    const topReserved = 90;
-    const rightReserved = window.innerWidth < 768 ? 0 : 170;
-    const bottomReserved = window.innerWidth < 768 ? 130 : 40;
-
-    return {
-        left: padding,
-        top: topReserved,
-        right: window.innerWidth - rightReserved - padding,
-        bottom: window.innerHeight - bottomReserved
-    };
-}
-
-function scaleImageToFitScreen() {
-    const maxWidth = window.innerWidth * 0.72;
-    const maxHeight = window.innerHeight * 0.75;
-
-    if (puzzleImage.width > maxWidth || puzzleImage.height > maxHeight) {
-
-        const ratio = Math.min(
-            maxWidth / puzzleImage.width,
-            maxHeight / puzzleImage.height
-        );
-
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = puzzleImage.width * ratio;
-        tempCanvas.height = puzzleImage.height * ratio;
-
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.drawImage(
-            puzzleImage,
-            0,
-            0,
-            tempCanvas.width,
-            tempCanvas.height
-        );
-
-        puzzleImage.src = tempCanvas.toDataURL();
+function generateAIImage() {
+    const prompt = document.getElementById('aiPrompt').value;
+    if (!prompt) {
+        alert("Please enter a description for the AI!");
+        return;
     }
+    document.getElementById('loadingMsg').innerText = "Generating AI art... this takes a few seconds.";
+    document.getElementById('loadingMsg').classList.remove('hidden');
+    const safePrompt = encodeURIComponent(prompt);
+    const aiUrl = `https://image.pollinations.ai/prompt/${safePrompt}?width=800&height=600&nologo=true`;
+    loadImage(aiUrl);
+}
+
+function getPuzzleConfig() {
+    const selected = document.querySelector('input[name="pieceCount"]:checked');
+    return puzzleSizes[selected ? selected.value : 20];
 }
 
 function loadImage(src) {
     puzzleImage.src = src;
-
     puzzleImage.onload = () => {
-        scaleImageToFitScreen();
+        if (scaleImageToFitScreen()) return;
         initGame();
     };
-
     puzzleImage.onerror = () => {
-        alert('Failed to load image.');
+        alert("Failed to load image. Please try a different one or adjust your prompt.");
         document.getElementById('loadingMsg').classList.add('hidden');
     };
 }
 
-function generateAIImage() {
-    const prompt = document.getElementById('aiPrompt').value.trim();
+function scaleImageToFitScreen() {
+    const { cols } = getPuzzleConfig();
+    const sideColumns = Math.ceil(cols / 2);
+    const sideTrayRatio = (sideColumns / cols) * 1.35;
+    const maxWidth = window.innerWidth / (1 + sideTrayRatio * 2);
+    const maxHeight = (window.innerHeight - trayTopPadding - trayPadding) / 1.35;
 
-    if (!prompt) {
-        alert('Please enter a prompt');
-        return;
+    if (puzzleImage.width > maxWidth || puzzleImage.height > maxHeight) {
+        const ratio = Math.min(maxWidth / puzzleImage.width, maxHeight / puzzleImage.height);
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = puzzleImage.width * ratio;
+        tempCanvas.height = puzzleImage.height * ratio;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(puzzleImage, 0, 0, tempCanvas.width, tempCanvas.height);
+        puzzleImage.src = tempCanvas.toDataURL();
+        return true;
     }
+    return false;
+}
 
-    document.getElementById('loadingMsg').classList.remove('hidden');
-    document.getElementById('loadingMsg').innerText = 'Generating AI image...';
+function updateBoardRect() {
+    boardRect = {
+        x: (canvas.width - puzzleImage.width) / 2,
+        y: (canvas.height - puzzleImage.height) / 2,
+        w: puzzleImage.width,
+        h: puzzleImage.height
+    };
+}
 
-    const safePrompt = encodeURIComponent(prompt);
+function positionPiecesInSideTrays(rows, cols, pieceW, pieceH) {
+    const loosePieces = pieces.filter(p => !p.isLocked);
+    const tabRoomX = pieceW * 0.32;
+    const tabRoomY = pieceH * 0.32;
+    const slotW = Math.max(pieceW * 1.3, 34);
+    const slotH = Math.max(pieceH * 1.3, 34);
+    const availableRows = Math.max(1, Math.floor((canvas.height - trayTopPadding - trayPadding) / slotH));
+    const perSide = Math.ceil(loosePieces.length / 2);
 
-    const aiUrl = `https://image.pollinations.ai/prompt/${safePrompt}?width=900&height=700&nologo=true`;
+    loosePieces.forEach((piece, index) => {
+        const sideIndex = index < perSide ? index : index - perSide;
+        const isLeft = index < perSide;
+        const stackCol = Math.floor(sideIndex / availableRows);
+        const stackRow = sideIndex % availableRows;
+        const sideOffset = stackCol * slotW + trayPadding + tabRoomX;
+        const trayX = isLeft
+            ? boardRect.x - sideOffset - pieceW
+            : boardRect.x + boardRect.w + sideOffset;
+        const trayY = trayTopPadding + stackRow * slotH + tabRoomY;
 
-    loadImage(aiUrl);
+        piece.x = Math.max(trayPadding, Math.min(canvas.width - pieceW - trayPadding, trayX));
+        piece.y = Math.max(trayTopPadding, Math.min(canvas.height - pieceH - trayPadding, trayY));
+    });
+}
+
+function updatePieceTargets() {
+    const pieceW = puzzleImage.width / currentCols;
+    const pieceH = puzzleImage.height / currentRows;
+    pieces.forEach(piece => {
+        piece.targetX = piece.col * pieceW + boardRect.x;
+        piece.targetY = piece.row * pieceH + boardRect.y;
+        if (piece.isLocked) {
+            piece.x = piece.targetX;
+            piece.y = piece.targetY;
+        }
+    });
+}
+
+function requestRender() {
+    if (animationFrameId) return;
+    animationFrameId = requestAnimationFrame(renderFrame);
+}
+
+function randomEdgeShape(type) {
+    return {
+        type,
+        center: 0.44 + Math.random() * 0.12,
+        width: 0.34 + Math.random() * 0.16,
+        depth: 0.17 + Math.random() * 0.1,
+        neck: 0.12 + Math.random() * 0.08,
+        shoulder: 0.18 + Math.random() * 0.08,
+        roundness: 0.78 + Math.random() * 0.34
+    };
+}
+
+function matchingEdge(edge, type, flipCenter = false) {
+    return {
+        ...edge,
+        type,
+        center: flipCenter ? 1 - edge.center : edge.center
+    };
+}
+
+function oppositeEdgeType(type) {
+    return type === 'tab' ? 'blank' : 'tab';
 }
 
 function restartPuzzle() {
@@ -349,53 +244,47 @@ function restartPuzzle() {
 }
 
 function showSettings() {
+    document.getElementById('win-message').classList.add('hidden');
     document.getElementById('menu').classList.remove('hidden');
     document.getElementById('side-controls').classList.add('hidden');
-    document.getElementById('win-message').classList.add('hidden');
     document.getElementById('loadingMsg').classList.add('hidden');
 
-    pieces = [];
-
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = [];
+    document.getElementById('stats').innerText = "";
 }
 
+// --- ENGINE & GEOMETRY ---
+
 class JigsawPiece {
-
     constructor(row, col, width, height, edges) {
-
         this.row = row;
         this.col = col;
         this.w = width;
         this.h = height;
-        this.edges = edges;
 
-        const offsetX = (window.innerWidth - puzzleImage.width) / 2;
-        const offsetY = (window.innerHeight - puzzleImage.height) / 2;
-
-        this.targetX = col * width + offsetX;
-        this.targetY = row * height + offsetY;
+        this.targetX = col * width + boardRect.x;
+        this.targetY = row * height + boardRect.y;
 
         this.imgX = col * width;
         this.imgY = row * height;
 
-        const bounds = getPlayableBounds();
-
-        this.x = bounds.left + Math.random() * ((bounds.right - bounds.left) - width);
-        this.y = bounds.top + Math.random() * ((bounds.bottom - bounds.top) - height);
+        this.x = 0;
+        this.y = 0;
 
         this.isLocked = false;
-
+        this.edges = edges;
         this.path = this.createPath();
+        this.cacheMargin = Math.max(this.w, this.h) * 0.4;
+        this.cacheCanvas = this.createCacheCanvas();
     }
 
     createPath() {
-
         const path = new Path2D();
-
         path.moveTo(0, 0);
 
         this.drawClassicEdge(path, 0, 0, this.w, 0, this.edges[0]);
@@ -404,13 +293,11 @@ class JigsawPiece {
         this.drawClassicEdge(path, 0, this.h, 0, 0, this.edges[3]);
 
         path.closePath();
-
         return path;
     }
 
-    drawClassicEdge(path, x1, y1, x2, y2, type) {
-
-        if (type === 'flat') {
+    drawClassicEdge(path, x1, y1, x2, y2, edge) {
+        if (edge === 'flat' || edge.type === 'flat') {
             path.lineTo(x2, y2);
             return;
         }
@@ -424,357 +311,261 @@ class JigsawPiece {
         const px = -ny;
         const py = nx;
 
-        const sign = type === 'tab' ? 1 : -1;
-        const tabDepth = len * 0.22 * sign;
+        const sign = edge.type === 'tab' ? 1 : -1;
+        const tabDepth = len * edge.depth * sign;
+        const center = len * edge.center;
+        const halfWidth = len * edge.width * 0.5;
+        const neck = len * edge.neck;
+        const shoulder = len * edge.shoulder;
+        const roundness = edge.roundness;
+        const start = Math.max(len * 0.08, center - halfWidth);
+        const leftNeck = Math.max(start + len * 0.04, center - neck);
+        const rightNeck = Math.min(len * 0.92, center + neck);
+        const end = Math.min(len * 0.92, center + halfWidth);
 
-        path.lineTo(x1 + nx * len * 0.38, y1 + ny * len * 0.38);
+        path.lineTo(x1 + nx * start, y1 + ny * start);
 
         path.bezierCurveTo(
-            x1 + nx * len * 0.38 + px * (tabDepth * 0.2),
-            y1 + ny * len * 0.38 + py * (tabDepth * 0.2),
-            x1 + nx * len * 0.20 + px * (tabDepth * 0.8),
-            y1 + ny * len * 0.20 + py * (tabDepth * 0.8),
-            x1 + nx * len * 0.35 + px * tabDepth,
-            y1 + ny * len * 0.35 + py * tabDepth
+            x1 + nx * (start + shoulder * 0.35) + px * (tabDepth * 0.08), y1 + ny * (start + shoulder * 0.35) + py * (tabDepth * 0.08),
+            x1 + nx * (leftNeck - shoulder * 0.45) + px * (tabDepth * 0.58), y1 + ny * (leftNeck - shoulder * 0.45) + py * (tabDepth * 0.58),
+            x1 + nx * leftNeck + px * (tabDepth * roundness), y1 + ny * leftNeck + py * (tabDepth * roundness)
         );
 
         path.bezierCurveTo(
-            x1 + nx * len * 0.45 + px * (tabDepth * 1.15),
-            y1 + ny * len * 0.45 + py * (tabDepth * 1.15),
-            x1 + nx * len * 0.55 + px * (tabDepth * 1.15),
-            y1 + ny * len * 0.55 + py * (tabDepth * 1.15),
-            x1 + nx * len * 0.65 + px * tabDepth,
-            y1 + ny * len * 0.65 + py * tabDepth
+            x1 + nx * (center - halfWidth * 0.26) + px * (tabDepth * (1.26 - roundness * 0.12)), y1 + ny * (center - halfWidth * 0.26) + py * (tabDepth * (1.26 - roundness * 0.12)),
+            x1 + nx * (center + halfWidth * 0.26) + px * (tabDepth * (1.26 - roundness * 0.12)), y1 + ny * (center + halfWidth * 0.26) + py * (tabDepth * (1.26 - roundness * 0.12)),
+            x1 + nx * rightNeck + px * (tabDepth * roundness), y1 + ny * rightNeck + py * (tabDepth * roundness)
         );
 
         path.bezierCurveTo(
-            x1 + nx * len * 0.80 + px * (tabDepth * 0.8),
-            y1 + ny * len * 0.80 + py * (tabDepth * 0.8),
-            x1 + nx * len * 0.62 + px * (tabDepth * 0.2),
-            y1 + ny * len * 0.62 + py * (tabDepth * 0.2),
-            x1 + nx * len * 0.62,
-            y1 + ny * len * 0.62
+            x1 + nx * (rightNeck + shoulder * 0.45) + px * (tabDepth * 0.58), y1 + ny * (rightNeck + shoulder * 0.45) + py * (tabDepth * 0.58),
+            x1 + nx * (end - shoulder * 0.35) + px * (tabDepth * 0.08), y1 + ny * (end - shoulder * 0.35) + py * (tabDepth * 0.08),
+            x1 + nx * end, y1 + ny * end
         );
 
         path.lineTo(x2, y2);
     }
 
+    createCacheCanvas() {
+        const cache = document.createElement('canvas');
+        const sizeW = Math.ceil(this.w + this.cacheMargin * 2);
+        const sizeH = Math.ceil(this.h + this.cacheMargin * 2);
+        cache.width = sizeW;
+        cache.height = sizeH;
+        const cacheCtx = cache.getContext('2d');
+
+        cacheCtx.save();
+        cacheCtx.translate(this.cacheMargin, this.cacheMargin);
+        cacheCtx.clip(this.path);
+        cacheCtx.drawImage(puzzleImage, -this.imgX, -this.imgY, puzzleImage.width, puzzleImage.height);
+        cacheCtx.restore();
+
+        cacheCtx.save();
+        cacheCtx.translate(this.cacheMargin, this.cacheMargin);
+        cacheCtx.strokeStyle = "rgba(0,0,0,0.5)";
+        cacheCtx.lineWidth = 1.5;
+        cacheCtx.stroke(this.path);
+
+        cacheCtx.strokeStyle = "rgba(255,255,255,0.2)";
+        cacheCtx.lineWidth = 0.5;
+        cacheCtx.stroke(this.path);
+        cacheCtx.restore();
+
+        return cache;
+    }
+
     draw(ctx) {
-
-        ctx.save();
-        ctx.translate(this.x, this.y);
-
-        if (this === selectedPiece) {
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 20;
-        }
-
-        ctx.clip(this.path);
-
-        ctx.drawImage(
-            puzzleImage,
-            -this.imgX,
-            -this.imgY,
-            puzzleImage.width,
-            puzzleImage.height
-        );
-
-        ctx.restore();
-
-        ctx.save();
-        ctx.translate(this.x, this.y);
-
-        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke(this.path);
-
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-        ctx.lineWidth = 0.5;
-        ctx.stroke(this.path);
-
-        ctx.restore();
+        ctx.drawImage(this.cacheCanvas, this.x - this.cacheMargin, this.y - this.cacheMargin);
     }
 
     contains(mx, my) {
-
-        if (
-            mx >= this.x - this.w * 0.5 &&
-            mx <= this.x + this.w * 1.5 &&
-            my >= this.y - this.h * 0.5 &&
-            my <= this.y + this.h * 1.5
-        ) {
+        if (mx >= this.x - this.w * 0.5 && mx <= this.x + this.w * 1.5 &&
+            my >= this.y - this.h * 0.5 && my <= this.y + this.h * 1.5) {
             const localX = mx - this.x;
             const localY = my - this.y;
-
             return ctx.isPointInPath(this.path, localX, localY);
         }
-
         return false;
     }
 }
 
 function initGame() {
-
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
 
-    resizeCanvas();
+    const { rows, cols } = getPuzzleConfig();
+    currentRows = rows;
+    currentCols = cols;
 
-    const pieceCount = parseInt(document.getElementById('pieceCountSelect').value);
-
-    const aspectRatio = puzzleImage.width / puzzleImage.height;
-
-    let cols = Math.round(Math.sqrt(pieceCount * aspectRatio));
-    let rows = Math.round(pieceCount / cols);
-
-    while ((rows * cols) < pieceCount) {
-        cols++;
-    }
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
     const pieceW = puzzleImage.width / cols;
     const pieceH = puzzleImage.height / rows;
+    updateBoardRect();
 
     pieces = [];
-
     const edgeMap = [];
 
     for (let r = 0; r < rows; r++) {
-
         edgeMap[r] = [];
-
         for (let c = 0; c < cols; c++) {
             edgeMap[r][c] = {
-                top: 'flat',
-                right: 'flat',
-                bottom: 'flat',
-                left: 'flat'
+                top: { type: 'flat' },
+                right: { type: 'flat' },
+                bottom: { type: 'flat' },
+                left: { type: 'flat' }
             };
         }
     }
 
     for (let r = 0; r < rows; r++) {
-
         for (let c = 0; c < cols; c++) {
-
             if (r < rows - 1) {
-                const type = Math.random() > 0.5 ? 'tab' : 'blank';
-                edgeMap[r][c].bottom = type;
-                edgeMap[r + 1][c].top = type === 'tab' ? 'blank' : 'tab';
+                const type = (Math.random() > 0.5) ? 'tab' : 'blank';
+                const edge = randomEdgeShape(type);
+                edgeMap[r][c].bottom = edge;
+                edgeMap[r+1][c].top = matchingEdge(edge, oppositeEdgeType(type), true);
             }
-
             if (c < cols - 1) {
-                const type = Math.random() > 0.5 ? 'tab' : 'blank';
-                edgeMap[r][c].right = type;
-                edgeMap[r][c + 1].left = type === 'tab' ? 'blank' : 'tab';
+                const type = (Math.random() > 0.5) ? 'tab' : 'blank';
+                const edge = randomEdgeShape(type);
+                edgeMap[r][c].right = edge;
+                edgeMap[r][c+1].left = matchingEdge(edge, oppositeEdgeType(type), true);
             }
         }
     }
 
     for (let r = 0; r < rows; r++) {
-
         for (let c = 0; c < cols; c++) {
-
-            const piece = new JigsawPiece(
-                r,
-                c,
-                pieceW,
-                pieceH,
-                [
-                    edgeMap[r][c].top,
-                    edgeMap[r][c].right,
-                    edgeMap[r][c].bottom,
-                    edgeMap[r][c].left
-                ]
-            );
-
-            pieces.push(piece);
+            const p = new JigsawPiece(r, c, pieceW, pieceH, [
+                edgeMap[r][c].top,
+                edgeMap[r][c].right,
+                edgeMap[r][c].bottom,
+                edgeMap[r][c].left
+            ]);
+            pieces.push(p);
         }
     }
 
     pieces.sort(() => Math.random() - 0.5);
+    positionPiecesInSideTrays(rows, cols, pieceW, pieceH);
 
     document.getElementById('menu').classList.add('hidden');
     document.getElementById('side-controls').classList.remove('hidden');
+    document.getElementById('stats').innerText = `Pieces remaining: ${pieces.length}`;
 
-    updateStats();
-
-    animate();
+    requestRender();
 }
 
-function updateStats() {
+function renderFrame() {
+    animationFrameId = null;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const remaining = pieces.filter(p => !p.isLocked).length;
-
-    document.getElementById('stats').innerText =
-        `Pieces remaining: ${remaining}`;
-}
-
-function animate() {
-
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-    const offsetX = (window.innerWidth - puzzleImage.width) / 2;
-    const offsetY = (window.innerHeight - puzzleImage.height) / 2;
-
-    ctx.globalAlpha = 0.08;
+    updateBoardRect();
+    const offsetX = boardRect.x;
+    const offsetY = boardRect.y;
+    ctx.globalAlpha = 0.16;
     ctx.drawImage(puzzleImage, offsetX, offsetY);
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = 1.0;
 
     for (const piece of pieces) {
-        if (piece !== selectedPiece && piece.isLocked) {
-            piece.draw(ctx);
-        }
+        if (piece.isLocked) piece.draw(ctx);
     }
-
     for (const piece of pieces) {
-        if (piece !== selectedPiece && !piece.isLocked) {
-            piece.draw(ctx);
-        }
+        if (!piece.isLocked && piece !== selectedPiece) piece.draw(ctx);
     }
-
-    if (selectedPiece) {
-        selectedPiece.draw(ctx);
-    }
-
-    animationFrameId = requestAnimationFrame(animate);
+    if (selectedPiece) selectedPiece.draw(ctx);
 }
+
+window.addEventListener('resize', () => {
+    if(pieces.length > 0) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        updateBoardRect();
+        updatePieceTargets();
+        positionPiecesInSideTrays(currentRows, currentCols, puzzleImage.width / currentCols, puzzleImage.height / currentRows);
+        requestRender();
+    }
+});
+
+// --- INPUT HANDLING (MOUSE & TOUCH) ---
 
 function handlePickup(mx, my) {
-
     for (let i = pieces.length - 1; i >= 0; i--) {
-
-        const piece = pieces[i];
-
-        if (!piece.isLocked && piece.contains(mx, my)) {
-
-            selectedPiece = piece;
-
+        if (!pieces[i].isLocked && pieces[i].contains(mx, my)) {
+            selectedPiece = pieces[i];
             offset.x = mx - selectedPiece.x;
             offset.y = my - selectedPiece.y;
 
             pieces.splice(i, 1);
             pieces.push(selectedPiece);
-
+            requestRender();
             break;
         }
     }
 }
 
 function handleMove(mx, my) {
-
     if (!selectedPiece) return;
-
     selectedPiece.x = mx - offset.x;
     selectedPiece.y = my - offset.y;
+    requestRender();
 }
 
 function handleDrop() {
-
     if (!selectedPiece) return;
 
-    const dist = Math.hypot(
-        selectedPiece.x - selectedPiece.targetX,
-        selectedPiece.y - selectedPiece.targetY
-    );
-
+    const dist = Math.hypot(selectedPiece.x - selectedPiece.targetX, selectedPiece.y - selectedPiece.targetY);
     if (dist < 40) {
-
         selectedPiece.x = selectedPiece.targetX;
         selectedPiece.y = selectedPiece.targetY;
         selectedPiece.isLocked = true;
 
-        if (navigator.vibrate) {
-            navigator.vibrate(30);
-        }
-
-        updateStats();
-
         const remaining = pieces.filter(p => !p.isLocked).length;
+        document.getElementById('stats').innerText = `Pieces remaining: ${remaining}`;
 
         if (remaining === 0) {
             document.getElementById('win-message').classList.remove('hidden');
         }
     }
-
     selectedPiece = null;
+    requestRender();
+}
+
+function getCanvasPoint(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
 }
 
 canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     canvas.setPointerCapture(e.pointerId);
-    handlePickup(e.clientX, e.clientY);
+    const point = getCanvasPoint(e);
+    handlePickup(point.x, point.y);
 });
 
 canvas.addEventListener('pointermove', (e) => {
-
     if (!selectedPiece) return;
-
     e.preventDefault();
+    const point = getCanvasPoint(e);
+    handleMove(point.x, point.y);
+});
 
-    handleMove(e.clientX, e.clientY);
-
-}, { passive: false });
-
-canvas.addEventListener('pointerup', () => {
+canvas.addEventListener('pointerup', (e) => {
+    if (canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId);
+    }
     handleDrop();
 });
 
-canvas.addEventListener('pointercancel', () => {
-    handleDrop();
-});
-
-window.addEventListener('resize', () => {
-
-    if (pieces.length === 0) {
-        resizeCanvas();
-        return;
-    }
-
-    resizeCanvas();
-
-    const offsetX = (window.innerWidth - puzzleImage.width) / 2;
-    const offsetY = (window.innerHeight - puzzleImage.height) / 2;
-
-    for (const piece of pieces) {
-
-        piece.targetX = piece.col * piece.w + offsetX;
-        piece.targetY = piece.row * piece.h + offsetY;
-
-        if (piece.isLocked) {
-            piece.x = piece.targetX;
-            piece.y = piece.targetY;
-        }
-    }
-});
-
-document.getElementById('imageUpload').addEventListener('change', function(e) {
-
-    const file = e.target.files[0];
-
-    if (!file) return;
-
-    document.getElementById('loadingMsg').classList.remove('hidden');
-    document.getElementById('loadingMsg').innerText = 'Processing image...';
-
-    loadImage(URL.createObjectURL(file));
-});
+canvas.addEventListener('pointercancel', handleDrop);
 
 </script>
 </body>
 </html>
-```
-
-# What Was Improved
-
-* Pointer Events for ultra-smooth mobile touch handling
-* Hardware acceleration optimizations
-* Retina/high-DPI canvas scaling
-* Safe puzzle spawn areas (no button overlap)
-* Better mobile UI layout
-* Cached Path2D shapes for major performance gains
-* Reduced garbage collection in animation loop
-* Improved drag fluidity with interpolation
-* Haptic vibration feedback on successful placement
-* Better resize/orientation handling
-* Improved touch responsiveness and scrolling prevention
-* Cleaner shadows and premium drag visuals
