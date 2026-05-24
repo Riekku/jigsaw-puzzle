@@ -7,25 +7,25 @@
     <style>
         body { margin: 0; background-color: #1a1a1a; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; touch-action: none; }
         canvas { background-color: #2c3e50; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
-
+        
         #ui { position: absolute; top: 20px; left: 20px; color: white; pointer-events: none; text-shadow: 1px 1px 2px black; z-index: 10;}
         #side-controls { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
-
+        
         .overlay { position: absolute; background: rgba(0,0,0,0.85); color: white; padding: 30px 40px; border-radius: 15px; text-align: center; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 400px; }
-
+        
         .piece-settings { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
         .piece-settings input { display: none; }
         .piece-settings label { background: #34495e; border: 2px solid transparent; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; padding: 10px 8px; transition: background 0.2s, border-color 0.2s; }
         .piece-settings input:checked + label { background: #27ae60; border-color: #9ff0bf; }
-
+        
         button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #27ae60; border: none; color: white; border-radius: 5px; margin-top: 10px; width: 100%; transition: background 0.2s; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);}
         button:hover { background: #2ecc71; }
         .side-btn { padding: 10px 15px; font-size: 14px; background: #34495e; border-radius: 8px; }
         .side-btn:hover { background: #455a64; }
-
+        
         input[type="text"] { padding: 10px; width: calc(100% - 20px); font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px; }
         input[type="file"] { margin: 10px 0; background: #333; padding: 10px; border-radius: 5px; width: calc(100% - 20px); cursor: pointer; color: white; }
-
+        
         hr { border-color: #444; margin: 20px 0; }
         .hidden { display: none !important; }
         #loadingMsg { color: #f1c40f; margin-top: 15px; font-weight: bold; }
@@ -44,7 +44,7 @@
 
 <div id="menu" class="overlay">
     <h2>Jigsaw Generator</h2>
-
+    
     <h3>Pieces</h3>
     <div class="piece-settings">
         <input type="radio" name="pieceCount" id="pieces20" value="20" checked>
@@ -88,6 +88,9 @@ let selectedPiece = null;
 let offset = { x: 0, y: 0 };
 let animationFrameId = null;
 let boardRect = { x: 0, y: 0, w: 0, h: 0 };
+let staticLayerCanvas = document.createElement('canvas');
+let staticLayerCtx = staticLayerCanvas.getContext('2d', { alpha: false });
+let staticLayerDirty = true;
 let currentRows = 4;
 let currentCols = 5;
 const trayPadding = 18;
@@ -100,7 +103,7 @@ const puzzleSizes = {
 };
 
 let puzzleImage = new Image();
-puzzleImage.crossOrigin = "Anonymous";
+puzzleImage.crossOrigin = "Anonymous"; 
 
 // --- GAME FLOW CONTROLS ---
 
@@ -109,7 +112,8 @@ document.getElementById('imageUpload').addEventListener('change', function(e) {
     if (!file) return;
     document.getElementById('loadingMsg').innerText = "Processing your image...";
     document.getElementById('loadingMsg').classList.remove('hidden');
-    loadImage(URL.createObjectURL(file));
+    const objectUrl = URL.createObjectURL(file);
+    loadImage(objectUrl, () => URL.revokeObjectURL(objectUrl));
 });
 
 function generateAIImage() {
@@ -130,9 +134,10 @@ function getPuzzleConfig() {
     return puzzleSizes[selected ? selected.value : 20];
 }
 
-function loadImage(src) {
+function loadImage(src, afterLoad) {
     puzzleImage.src = src;
     puzzleImage.onload = () => {
+        if (afterLoad) afterLoad();
         if (scaleImageToFitScreen()) return;
         initGame();
     };
@@ -148,7 +153,7 @@ function scaleImageToFitScreen() {
     const sideTrayRatio = (sideColumns / cols) * 1.35;
     const maxWidth = window.innerWidth / (1 + sideTrayRatio * 2);
     const maxHeight = (window.innerHeight - trayTopPadding - trayPadding) / 1.35;
-
+    
     if (puzzleImage.width > maxWidth || puzzleImage.height > maxHeight) {
         const ratio = Math.min(maxWidth / puzzleImage.width, maxHeight / puzzleImage.height);
         const tempCanvas = document.createElement('canvas');
@@ -169,6 +174,30 @@ function updateBoardRect() {
         w: puzzleImage.width,
         h: puzzleImage.height
     };
+    staticLayerDirty = true;
+}
+
+function resizeStaticLayer() {
+    if (staticLayerCanvas.width !== canvas.width || staticLayerCanvas.height !== canvas.height) {
+        staticLayerCanvas.width = canvas.width;
+        staticLayerCanvas.height = canvas.height;
+        staticLayerDirty = true;
+    }
+}
+
+function rebuildStaticLayer() {
+    resizeStaticLayer();
+    staticLayerCtx.fillStyle = "#2c3e50";
+    staticLayerCtx.fillRect(0, 0, staticLayerCanvas.width, staticLayerCanvas.height);
+    staticLayerCtx.globalAlpha = 0.16;
+    staticLayerCtx.drawImage(puzzleImage, boardRect.x, boardRect.y);
+    staticLayerCtx.globalAlpha = 1.0;
+
+    for (const piece of pieces) {
+        if (piece.isLocked) piece.draw(staticLayerCtx);
+    }
+
+    staticLayerDirty = false;
 }
 
 function positionPiecesInSideTrays(rows, cols, pieceW, pieceH) {
@@ -240,7 +269,7 @@ function oppositeEdgeType(type) {
 
 function restartPuzzle() {
     document.getElementById('win-message').classList.add('hidden');
-    initGame();
+    initGame(); 
 }
 
 function showSettings() {
@@ -248,7 +277,7 @@ function showSettings() {
     document.getElementById('menu').classList.remove('hidden');
     document.getElementById('side-controls').classList.add('hidden');
     document.getElementById('loadingMsg').classList.add('hidden');
-
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
@@ -269,7 +298,7 @@ class JigsawPiece {
 
         this.targetX = col * width + boardRect.x;
         this.targetY = row * height + boardRect.y;
-
+        
         this.imgX = col * width;
         this.imgY = row * height;
 
@@ -277,7 +306,7 @@ class JigsawPiece {
         this.y = 0;
 
         this.isLocked = false;
-        this.edges = edges;
+        this.edges = edges; 
         this.path = this.createPath();
         this.cacheMargin = Math.max(this.w, this.h) * 0.4;
         this.cacheCanvas = this.createCacheCanvas();
@@ -287,10 +316,10 @@ class JigsawPiece {
         const path = new Path2D();
         path.moveTo(0, 0);
 
-        this.drawClassicEdge(path, 0, 0, this.w, 0, this.edges[0]);
-        this.drawClassicEdge(path, this.w, 0, this.w, this.h, this.edges[1]);
-        this.drawClassicEdge(path, this.w, this.h, 0, this.h, this.edges[2]);
-        this.drawClassicEdge(path, 0, this.h, 0, 0, this.edges[3]);
+        this.drawClassicEdge(path, 0, 0, this.w, 0, this.edges[0]); 
+        this.drawClassicEdge(path, this.w, 0, this.w, this.h, this.edges[1]); 
+        this.drawClassicEdge(path, this.w, this.h, 0, this.h, this.edges[2]); 
+        this.drawClassicEdge(path, 0, this.h, 0, 0, this.edges[3]); 
 
         path.closePath();
         return path;
@@ -305,7 +334,7 @@ class JigsawPiece {
         const dx = x2 - x1;
         const dy = y2 - y1;
         const len = Math.hypot(dx, dy);
-
+        
         const nx = dx / len;
         const ny = dy / len;
         const px = -ny;
@@ -322,7 +351,7 @@ class JigsawPiece {
         const leftNeck = Math.max(start + len * 0.04, center - neck);
         const rightNeck = Math.min(len * 0.92, center + neck);
         const end = Math.min(len * 0.92, center + halfWidth);
-
+        
         path.lineTo(x1 + nx * start, y1 + ny * start);
 
         path.bezierCurveTo(
@@ -353,11 +382,19 @@ class JigsawPiece {
         cache.width = sizeW;
         cache.height = sizeH;
         const cacheCtx = cache.getContext('2d');
+        const sourceX = Math.max(0, this.imgX - this.cacheMargin);
+        const sourceY = Math.max(0, this.imgY - this.cacheMargin);
+        const sourceRight = Math.min(puzzleImage.width, this.imgX + this.w + this.cacheMargin);
+        const sourceBottom = Math.min(puzzleImage.height, this.imgY + this.h + this.cacheMargin);
+        const sourceW = sourceRight - sourceX;
+        const sourceH = sourceBottom - sourceY;
+        const destX = this.cacheMargin - (this.imgX - sourceX);
+        const destY = this.cacheMargin - (this.imgY - sourceY);
 
         cacheCtx.save();
         cacheCtx.translate(this.cacheMargin, this.cacheMargin);
         cacheCtx.clip(this.path);
-        cacheCtx.drawImage(puzzleImage, -this.imgX, -this.imgY, puzzleImage.width, puzzleImage.height);
+        cacheCtx.drawImage(puzzleImage, sourceX, sourceY, sourceW, sourceH, destX, destY, sourceW, sourceH);
         cacheCtx.restore();
 
         cacheCtx.save();
@@ -365,7 +402,7 @@ class JigsawPiece {
         cacheCtx.strokeStyle = "rgba(0,0,0,0.5)";
         cacheCtx.lineWidth = 1.5;
         cacheCtx.stroke(this.path);
-
+        
         cacheCtx.strokeStyle = "rgba(255,255,255,0.2)";
         cacheCtx.lineWidth = 0.5;
         cacheCtx.stroke(this.path);
@@ -379,7 +416,7 @@ class JigsawPiece {
     }
 
     contains(mx, my) {
-        if (mx >= this.x - this.w * 0.5 && mx <= this.x + this.w * 1.5 &&
+        if (mx >= this.x - this.w * 0.5 && mx <= this.x + this.w * 1.5 && 
             my >= this.y - this.h * 0.5 && my <= this.y + this.h * 1.5) {
             const localX = mx - this.x;
             const localY = my - this.y;
@@ -398,9 +435,10 @@ function initGame() {
     const { rows, cols } = getPuzzleConfig();
     currentRows = rows;
     currentCols = cols;
-
+    
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    resizeStaticLayer();
 
     const pieceW = puzzleImage.width / cols;
     const pieceH = puzzleImage.height / rows;
@@ -408,7 +446,7 @@ function initGame() {
 
     pieces = [];
     const edgeMap = [];
-
+    
     for (let r = 0; r < rows; r++) {
         edgeMap[r] = [];
         for (let c = 0; c < cols; c++) {
@@ -456,24 +494,15 @@ function initGame() {
     document.getElementById('menu').classList.add('hidden');
     document.getElementById('side-controls').classList.remove('hidden');
     document.getElementById('stats').innerText = `Pieces remaining: ${pieces.length}`;
-
+    
     requestRender();
 }
 
 function renderFrame() {
     animationFrameId = null;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (staticLayerDirty) rebuildStaticLayer();
+    ctx.drawImage(staticLayerCanvas, 0, 0);
 
-    updateBoardRect();
-    const offsetX = boardRect.x;
-    const offsetY = boardRect.y;
-    ctx.globalAlpha = 0.16;
-    ctx.drawImage(puzzleImage, offsetX, offsetY);
-    ctx.globalAlpha = 1.0;
-
-    for (const piece of pieces) {
-        if (piece.isLocked) piece.draw(ctx);
-    }
     for (const piece of pieces) {
         if (!piece.isLocked && piece !== selectedPiece) piece.draw(ctx);
     }
@@ -484,6 +513,7 @@ window.addEventListener('resize', () => {
     if(pieces.length > 0) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        resizeStaticLayer();
         updateBoardRect();
         updatePieceTargets();
         positionPiecesInSideTrays(currentRows, currentCols, puzzleImage.width / currentCols, puzzleImage.height / currentRows);
@@ -499,7 +529,7 @@ function handlePickup(mx, my) {
             selectedPiece = pieces[i];
             offset.x = mx - selectedPiece.x;
             offset.y = my - selectedPiece.y;
-
+            
             pieces.splice(i, 1);
             pieces.push(selectedPiece);
             requestRender();
@@ -523,7 +553,8 @@ function handleDrop() {
         selectedPiece.x = selectedPiece.targetX;
         selectedPiece.y = selectedPiece.targetY;
         selectedPiece.isLocked = true;
-
+        staticLayerDirty = true;
+        
         const remaining = pieces.filter(p => !p.isLocked).length;
         document.getElementById('stats').innerText = `Pieces remaining: ${remaining}`;
 
